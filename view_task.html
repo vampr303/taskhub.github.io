@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}{{ task.title }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-header">
+            <div class="task-header">
+                <div class="task-title">{{ task.title }}</div>
+                <span class="task-type {{ task.task_type }}">
+                    {% if task.task_type == 'personal' %}Личное{% else %}Общее{% endif %}
+                </span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div style="margin-bottom: 2rem;">
+                <h4 style="margin-bottom: 1rem; color: #2c3e50;">Описание задания</h4>
+                <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px;">
+                    {{ task.description }}
+                </div>
+            </div>
+            
+            <div style="font-size: 0.9rem; color: #666; margin-bottom: 2rem;">
+                <strong>Создано:</strong> {{ task.created_at.strftime('%d.%m.%Y %H:%M') }}
+                {% if task.task_type == 'personal' and task.assignee %}
+                | <strong>Назначено:</strong> {{ task.assignee.full_name }}
+                {% else %}
+                | <strong>Тип:</strong> Общее задание для всех
+                {% endif %}
+                {% if current_user.is_admin and task.payment_amount %}
+                | <strong>Оплата:</strong> {{ task.payment_amount }} ₽
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            Загрузка файлов
+        </div>
+        <div class="card-body">
+            <div class="file-upload-area">
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload_file', task_id=task.id) }}" id="file-upload-form">
+                    <input type="file" name="file" id="file-input" style="display: none;"
+                           accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt,.rtf,.xls,.xlsx,.csv,.ppt,.pptx,.zip,.rar,.7z,.stl,.obj,.3ds,.blend,.ply,.json,.xml,.html,.css,.js,.py,.cpp,.c,.java">
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="file-input" class="btn btn-primary" style="cursor: pointer;">
+                            Выбрать файл
+                        </label>
+                        <span id="selected-file-name" style="margin-left: 1rem; color: #666;"></span>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success" id="upload-btn" style="display: none;">
+                        Загрузить файл
+                    </button>
+                </form>
+                
+                <div style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                    <strong>Поддерживаемые форматы:</strong><br>
+                    Изображения: PNG, JPG, JPEG, GIF, BMP, SVG, TIFF, WEBP, ICO<br>
+                    Видео: MP4, AVI, MOV, WMV, FLV, WEBM, MKV, M4V, 3GP, MPG<br>
+                    Аудио: MP3, WAV, FLAC, AAC, OGG, WMA<br>
+                    Документы: PDF, DOC, DOCX, TXT, RTF, ODT, XLS, XLSX, CSV, PPT, PPTX<br>
+                    Архивы: ZIP, RAR, 7Z, TAR, GZ<br>
+                    3D файлы: STL, OBJ, 3DS, BLEND, PLY, DAE, FBX, GLTF, GLB<br>
+                    Код: JSON, XML, HTML, CSS, JS, PY, CPP, C, JAVA<br>
+                    Максимальный размер файла: 100 МБ
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            Загруженные файлы ({{ files|length }})
+        </div>
+        <div class="card-body">
+            {% if files %}
+            <div style="display: grid; gap: 1rem;">
+                {% for file in files %}
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: #f8f9fa; border-radius: 4px; border: 1px solid #dee2e6;">
+                    <div>
+                        <div style="font-weight: bold; color: #2c3e50;">{{ file.original_filename }}</div>
+                        <div style="font-size: 0.9rem; color: #666;">
+                            Размер: {{ (file.file_size / 1024 / 1024)|round(2) }} МБ | 
+                            Загружен: {{ file.uploaded_at.strftime('%d.%m.%Y %H:%M') }} | 
+                            Пользователь: {{ file.uploader.full_name }}
+                        </div>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('download_file', file_id=file.id) }}" class="btn btn-primary">Скачать</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="text-align: center; color: #666; padding: 2rem;">
+                Файлы пока не загружены. Используйте форму загрузки выше.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            Комментарии ({{ comments|length }})
+        </div>
+        <div class="card-body">
+            <form method="POST" style="margin-bottom: 2rem;">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.content.label(class="form-label") }}
+                    {{ form.content(class="form-control", placeholder="Напишите комментарий...", rows="3") }}
+                    {% if form.content.errors %}
+                        {% for error in form.content.errors %}
+                            <div class="alert alert-error" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-success">Добавить комментарий</button>
+            </form>
+            
+            {% if comments %}
+            <div>
+                {% for comment in comments %}
+                <div class="comment">
+                    <div class="comment-header">
+                        <span class="comment-author">{{ comment.author.full_name }}</span>
+                        <span>{{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                    </div>
+                    <div>{{ comment.content }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="text-align: center; color: #666; padding: 1rem;">
+                Комментариев пока нет. Будьте первым!
+            </p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 2rem;">
+        {% if current_user.is_admin %}
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary">Вернуться к админ панели</a>
+        {% else %}
+            <a href="{{ url_for('employee_dashboard') }}" class="btn btn-primary">Вернуться к моим заданиям</a>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('file-input');
+    const selectedFileName = document.getElementById('selected-file-name');
+    const uploadBtn = document.getElementById('upload-btn');
+    const form = document.getElementById('file-upload-form');
+    
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            selectedFileName.textContent = 'Выбран файл: ' + this.files[0].name;
+            uploadBtn.style.display = 'inline-block';
+        } else {
+            selectedFileName.textContent = '';
+            uploadBtn.style.display = 'none';
+        }
+    });
+    
+    form.addEventListener('submit', function(e) {
+        if (fileInput.files.length === 0) {
+            e.preventDefault();
+            alert('Пожалуйста, выберите файл для загрузки');
+        }
+    });
+});
+</script>
+{% endblock %}

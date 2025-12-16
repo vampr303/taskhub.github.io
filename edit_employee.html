@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Редактирование работника: {{ employee.full_name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-header">
+            Редактирование данных работника: {{ employee.full_name }}
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    {{ form.username.label(class="form-label") }}
+                    {{ form.username(class="form-control", placeholder="Введите логин") }}
+                    {% if form.username.errors %}
+                        {% for error in form.username.errors %}
+                            <div class="alert alert-error" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control", placeholder="Введите email") }}
+                    {% if form.email.errors %}
+                        {% for error in form.email.errors %}
+                            <div class="alert alert-error" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.full_name.label(class="form-label") }}
+                    {{ form.full_name(class="form-control", placeholder="Введите полное имя") }}
+                    {% if form.full_name.errors %}
+                        {% for error in form.full_name.errors %}
+                            <div class="alert alert-error" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Новый пароль (оставьте пустым, если не хотите менять)</label>
+                    {{ form.password(class="form-control", placeholder="Введите новый пароль (минимум 6 символов)") }}
+                    {% if form.password.errors %}
+                        {% for error in form.password.errors %}
+                            <div class="alert alert-error" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Подтвердите новый пароль</label>
+                    {{ form.password2(class="form-control", placeholder="Повторите новый пароль") }}
+                    {% if form.password2.errors %}
+                        {% for error in form.password2.errors %}
+                            <div class="alert alert-error" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <div class="alert alert-info">
+                        <strong>Информация:</strong><br>
+                        - Если вы не хотите менять пароль, оставьте поля пароля пустыми<br>
+                        - Логин и email должны быть уникальными<br>
+                        - Все поля обязательны для заполнения
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="actions">
+                        {{ form.submit(class="btn btn-success", style="width: 100%;") }}
+                    </div>
+                </div>
+            </form>
+
+            <div style="margin-top: 2rem; text-align: center;">
+                <a href="{{ url_for('view_employee_profile', user_id=employee.id) }}" class="btn btn-warning">Отмена</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
