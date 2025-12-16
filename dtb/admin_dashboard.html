@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Админ панель{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ users|length }}</div>
+        <div class="stat-label">Всего работников</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ tasks|length }}</div>
+        <div class="stat-label">Всего заданий</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ total_payment }} ₽</div>
+        <div class="stat-label">Общая сумма оплаты</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ paid_tasks }}</div>
+        <div class="stat-label">Оплаченных заданий</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        Список работников
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Логин</th>
+                    <th>Полное имя</th>
+                    <th>Email</th>
+                    <th>Дата регистрации</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.full_name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.created_at.strftime('%d.%m.%Y') }}</td>
+                    <td>
+                        <div class="actions">
+                            <a href="{{ url_for('view_employee_profile', user_id=user.id) }}" class="btn btn-primary">Просмотреть</a>
+                            <a href="{{ url_for('edit_employee', user_id=user.id) }}" class="btn btn-warning">Редактировать</a>
+                            <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}" style="display: inline;" onsubmit="return confirm('Вы уверены, что хотите удалить этого работника?')">
+                                <button type="submit" class="btn btn-danger">Удалить</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if users|length == 0 %}
+        <p style="text-align: center; color: #666; padding: 2rem;">
+            Работники пока не добавлены. Используйте кнопку "Добавить работника" в верхней панели.
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        Все задания
+    </div>
+    <div class="card-body">
+        {% for task in tasks %}
+        <div class="task-card {{ task.task_type }}" style="margin-bottom: 2rem;">
+            <div class="task-header">
+                <div>
+                    <div class="task-title">{{ task.title }}</div>
+                    <div style="margin-top: 0.5rem;">
+                        <span class="task-type {{ task.task_type }}">
+                            {% if task.task_type == 'personal' %}Личное{% else %}Общее{% endif %}
+                        </span>
+                        {% if task.assigned_to %}
+                        <span style="margin-left: 1rem; color: #666;">
+                            Назначено: {{ task.assignee.full_name }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    {% if task.payment_amount %}
+                    <div class="payment-amount">{{ task.payment_amount }} ₽</div>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('update_payment_status', task_id=task.id) }}" style="margin-top: 0.5rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
+                            <input type="checkbox" name="is_paid" {% if task.is_paid %}checked{% endif %} onchange="this.form.submit()">
+                            Оплачено
+                        </label>
+                    </form>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <strong>Описание:</strong><br>
+                {{ task.description }}
+            </div>
+            
+            <div style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;">
+                Создано: {{ task.created_at.strftime('%d.%m.%Y %H:%M') }}
+                {% if task.assigned_to %}
+                | Назначено работнику: {{ task.assignee.full_name }}
+                {% else %}
+                | Общее задание
+                {% endif %}
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
+                <h4 style="margin-bottom: 1rem; color: #2c3e50;">Файлы ({{ task.files|length }})</h4>
+                {% for file in task.files %}
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background-color: white; margin-bottom: 0.5rem; border-radius: 4px;">
+                    <div>
+                        <strong>{{ file.original_filename }}</strong>
+                        <span style="color: #666; margin-left: 1rem;">
+                            ({{ (file.file_size / 1024 / 1024)|round(2) }} МБ)
+                        </span>
+                        <span style="color: #666; margin-left: 1rem;">
+                            Загружен: {{ file.uploader.full_name }}
+                        </span>
+                    </div>
+                    <a href="{{ url_for('download_file', file_id=file.id) }}" class="btn btn-primary">Скачать</a>
+                </div>
+                {% endfor %}
+                
+                {% if task.files|length == 0 %}
+                <p style="color: #666; text-align: center;">Файлов пока нет</p>
+                {% endif %}
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
+                <h4 style="margin-bottom: 1rem; color: #2c3e50;">Комментарии ({{ task.comments|length }})</h4>
+                {% for comment in task.comments %}
+                <div class="comment">
+                    <div class="comment-header">
+                        <span class="comment-author">{{ comment.author.full_name }}</span>
+                        <span>{{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                    </div>
+                    <div>{{ comment.content }}</div>
+                </div>
+                {% endfor %}
+                
+                {% if task.comments|length == 0 %}
+                <p style="color: #666; text-align: center;">Комментариев пока нет</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        
+        {% if tasks|length == 0 %}
+        <p style="text-align: center; color: #666; padding: 2rem;">
+            Задания пока не созданы. Используйте кнопку "Создать задание" в верхней панели.
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

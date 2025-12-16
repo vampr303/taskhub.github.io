@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  task-manager:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      # Монтируем папку uploads для сохранения файлов
+      - ./uploads:/app/uploads
+      # Монтируем базу данных
+      - ./instance:/app/instance
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - SECRET_KEY=your-secret-key-change-in-production
+    restart: unless-stopped

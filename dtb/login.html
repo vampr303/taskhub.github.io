@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Вход в систему{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-header">
+            Вход в систему
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-group">
+                    {{ form.username.label(class="form-label") }}
+                    {{ form.username(class="form-control", placeholder="Введите логин") }}
+                    {% if form.username.errors %}
+                        {% for error in form.username.errors %}
+                            <div class="alert alert-error" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.password.label(class="form-label") }}
+                    {{ form.password(class="form-control", placeholder="Введите пароль") }}
+                    {% if form.password.errors %}
+                        {% for error in form.password.errors %}
+                            <div class="alert alert-error" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <div class="checkbox-inline">
+                        {{ form.remember_me() }}
+                        {{ form.remember_me.label() }}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.submit(class="btn btn-primary", style="width: 100%;") }}
+                </div>
+            </form>
+            
+            <!-- Данные администратора убраны для безопасности -->
+        </div>
+    </div>
+</div>
+{% endblock %}

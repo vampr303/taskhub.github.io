@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Создать задание{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-header">
+            Создать новое задание
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-group">
+                    {{ form.title.label(class="form-label") }}
+                    {{ form.title(class="form-control", placeholder="Введите заголовок задания") }}
+                    {% if form.title.errors %}
+                        {% for error in form.title.errors %}
+                            <div class="alert alert-error" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control", placeholder="Подробно опишите задание", rows="5") }}
+                    {% if form.description.errors %}
+                        {% for error in form.description.errors %}
+                            <div class="alert alert-error" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.task_type.label(class="form-label") }}
+                    {{ form.task_type(class="form-control") }}
+                    {% if form.task_type.errors %}
+                        {% for error in form.task_type.errors %}
+                            <div class="alert alert-error" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <small style="color: #666; display: block; margin-top: 0.5rem;">
+                        <strong>Личное задание:</strong> Назначается конкретному работнику<br>
+                        <strong>Общее задание:</strong> Видимо всеми работниками
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.assigned_to.label(class="form-label") }}
+                    {{ form.assigned_to(class="form-control") }}
+                    <small style="color: #666; display: block; margin-top: 0.5rem;">
+                        Выберите работника для личного задания или "" для всех
+Общее задание                    </small>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.payment_amount.label(class="form-label") }}
+                    {{ form.payment_amount(class="form-control", placeholder="Сумма оплаты за задание (руб.)", step="0.01") }}
+                    {% if form.payment_amount.errors %}
+                        {% for error in form.payment_amount.errors %}
+                            <div class="alert alert-error" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <small style="color: #666; display: block; margin-top: 0.5rem;">
+                        Укажите сумму оплаты за выполнение задания. Это поле видно только администратору.
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.submit(class="btn btn-success", style="width: 100%;") }}
+                </div>
+            </form>
+            
+            <div style="margin-top: 2rem; padding: 1rem; background-color: #e8f4f8; border-radius: 4px; border-left: 4px solid #3498db;">
+                <h4 style="color: #2c3e50; margin-bottom: 0.5rem;">Информация о типах заданий:</h4>
+                <ul style="margin: 0; padding-left: 1.5rem;">
+                    <li><strong>Личные задания:</strong> Назначаются конкретному работнику, видны только ему и администратору</li>
+                    <li><strong>Общие задания:</strong> Видны всем работникам, могут выполняться коллективно</li>
+                    <li><strong>Сумма оплаты:</strong> Устанавливается администратором для внутреннего учета, работники её не видят</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const taskTypeSelect = document.querySelector('select[name="task_type"]');
+    const assignedToSelect = document.querySelector('select[name="assigned_to"]');
+    
+    function updateAssignmentOptions() {
+        const taskType = taskTypeSelect.value;
+        
+        if (taskType === 'general') {
+            // Для общих заданий всегда показываем "Общее задание"
+            for (let option of assignedToSelect.options) {
+                if (option.value !== '0') {
+                    option.style.display = 'none';
+                } else {
+                    option.style.display = 'block';
+                    option.selected = true;
+                }
+            }
+        } else {
+            // Для личных заданий показываем всех работников
+            for (let option of assignedToSelect.options) {
+                option.style.display = 'block';
+            }
+        }
+    }
+    
+    taskTypeSelect.addEventListener('change', updateAssignmentOptions);
+    updateAssignmentOptions(); // Выполняем при загрузке страницы
+});
+</script>
+{% endblock %}

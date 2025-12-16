@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль работника: {{ employee.full_name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Профиль работника: {{ employee.full_name }}</h2>
+                <div class="actions">
+                    <a href="{{ url_for('edit_employee', user_id=employee.id) }}" class="btn btn-primary">Редактировать данные</a>
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-warning">Вернуться к админ панели</a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+                <div>
+                    <h4 style="color: #2c3e50; margin-bottom: 1rem;">Информация о работнике</h4>
+                    <table class="table">
+                        <tr>
+                            <td style="font-weight: bold; width: 150px;">Логин:</td>
+                            <td>{{ employee.username }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">Полное имя:</td>
+                            <td>{{ employee.full_name }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">Email:</td>
+                            <td>{{ employee.email }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">Дата регистрации:</td>
+                            <td>{{ employee.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">Последнее обновление:</td>
+                            <td>{{ employee.updated_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div>
+                    <h4 style="color: #2c3e50; margin-bottom: 1rem;">Статистика</h4>
+                    <div class="stats-grid" style="grid-template-columns: 1fr;">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ personal_tasks|length }}</div>
+                            <div class="stat-label">Личных заданий</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ general_tasks|length }}</div>
+                            <div class="stat-label">Общих заданий</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ employee.uploaded_files|length }}</div>
+                            <div class="stat-label">Загруженных файлов</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if personal_tasks %}
+    <div class="card">
+        <div class="card-header" style="background-color: #e74c3c; color: white;">
+            Личные задания работника
+        </div>
+        <div class="card-body">
+            {% for task in personal_tasks %}
+            <div class="task-card personal" style="margin-bottom: 1rem;">
+                <div class="task-header">
+                    <div>
+                        <div class="task-title">{{ task.title }}</div>
+                        <div style="margin-top: 0.5rem;">
+                            <span class="task-type personal">Личное</span>
+                            {% if task.payment_amount %}
+                            <span style="margin-left: 1rem; color: #27ae60; font-weight: bold;">
+                                {{ task.payment_amount }} ₽
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="{{ url_for('view_task', task_id=task.id) }}" class="btn btn-primary">Просмотреть</a>
+                        <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-warning">Редактировать</a>
+                        <form method="POST" action="{{ url_for('delete_task', task_id=task.id) }}" style="display: inline;" onsubmit="return confirm('Вы уверены, что хотите удалить это задание?')">
+                            <button type="submit" class="btn btn-danger">Удалить</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <strong>Описание:</strong><br>
+                    {{ task.description }}
+                </div>
+
+                <div style="font-size: 0.9rem; color: #666;">
+                    Создано: {{ task.created_at.strftime('%d.%m.%Y %H:%M') }}
+                    | Файлов: {{ task.files|length }}
+                    | Комментариев: {{ task.comments|length }}
+                    {% if task.is_paid %}
+                    | <span style="color: #27ae60; font-weight: bold;">Оплачено</span>
+                    {% else %}
+                    | <span style="color: #e74c3c;">Не оплачено</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if general_tasks %}
+    <div class="card">
+        <div class="card-header" style="background-color: #f39c12; color: white;">
+            Общие задания (доступные работнику)
+        </div>
+        <div class="card-body">
+            {% for task in general_tasks %}
+            <div class="task-card general" style="margin-bottom: 1rem;">
+                <div class="task-header">
+                    <div>
+                        <div class="task-title">{{ task.title }}</div>
+                        <div style="margin-top: 0.5rem;">
+                            <span class="task-type general">Общее</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="{{ url_for('view_task', task_id=task.id) }}" class="btn btn-primary">Просмотреть</a>
+                        <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-warning">Редактировать</a>
+                        <form method="POST" action="{{ url_for('delete_task', task_id=task.id) }}" style="display: inline;" onsubmit="return confirm('Вы уверены, что хотите удалить это задание?')">
+                            <button type="submit" class="btn btn-danger">Удалить</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <strong>Описание:</strong><br>
+                    {{ task.description }}
+                </div>
+
+                <div style="font-size: 0.9rem; color: #666;">
+                    Создано: {{ task.created_at.strftime('%d.%m.%Y %H:%M') }}
+                    | Файлов: {{ task.files|length }}
+                    | Комментариев: {{ task.comments|length }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not personal_tasks and not general_tasks %}
+    <div class="card">
+        <div class="card-body">
+            <div style="text-align: center; padding: 3rem; color: #666;">
+                <h3 style="margin-bottom: 1rem;">Заданий пока нет</h3>
+                <p>У этого работника пока нет назначенных заданий.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

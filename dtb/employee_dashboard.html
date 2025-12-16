@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Мои задания{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ personal_tasks|length }}</div>
+        <div class="stat-label">Личных заданий</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ general_tasks|length }}</div>
+        <div class="stat-label">Общих заданий</div>
+    </div>
+</div>
+
+{% if personal_tasks %}
+<div class="card">
+    <div class="card-header" style="background-color: #e74c3c;">
+        Мои личные задания
+    </div>
+    <div class="card-body">
+        {% for task in personal_tasks %}
+        <div class="task-card personal">
+            <div class="task-header">
+                <div class="task-title">{{ task.title }}</div>
+                <span class="task-type personal">Личное</span>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <strong>Описание:</strong><br>
+                {{ task.description }}
+            </div>
+            
+            <div style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;">
+                Создано: {{ task.created_at.strftime('%d.%m.%Y %H:%M') }}
+                {% if task.files|length > 0 %}
+                | Файлов: {{ task.files|length }}
+                {% endif %}
+                {% if task.comments|length > 0 %}
+                | Комментариев: {{ task.comments|length }}
+                {% endif %}
+            </div>
+            
+            <div class="actions">
+                <a href="{{ url_for('view_task', task_id=task.id) }}" class="btn btn-primary">Посмотреть задание</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if general_tasks %}
+<div class="card">
+    <div class="card-header" style="background-color: #f39c12;">
+        Общие задания
+    </div>
+    <div class="card-body">
+        {% for task in general_tasks %}
+        <div class="task-card general">
+            <div class="task-header">
+                <div class="task-title">{{ task.title }}</div>
+                <span class="task-type general">Общее</span>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <strong>Описание:</strong><br>
+                {{ task.description }}
+            </div>
+            
+            <div style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;">
+                Создано: {{ task.created_at.strftime('%d.%m.%Y %H:%M') }}
+                {% if task.files|length > 0 %}
+                | Файлов: {{ task.files|length }}
+                {% endif %}
+                {% if task.comments|length > 0 %}
+                | Комментариев: {{ task.comments|length }}
+                {% endif %}
+            </div>
+            
+            <div class="actions">
+                <a href="{{ url_for('view_task', task_id=task.id) }}" class="btn btn-warning">Посмотреть задание</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if personal_tasks|length == 0 and general_tasks|length == 0 %}
+<div class="card">
+    <div class="card-body">
+        <div style="text-align: center; padding: 3rem; color: #666;">
+            <h3 style="margin-bottom: 1rem;">Заданий пока нет</h3>
+            <p>Администратор пока не назначил вам никаких заданий.</p>
+            <p>Проверьте позже или обратитесь к администратору.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
